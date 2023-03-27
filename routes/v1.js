@@ -1,5 +1,5 @@
 var express = require('express');
-const { cloneDeep } = require('lodash');
+const { cloneDeep, isNumber } = require('lodash');
 const request = require('request');
 const { sendErrParams, sendError, sendSuccess } = require('../utils/resUtils');
 var router = express.Router();
@@ -13,7 +13,7 @@ var router = express.Router();
  * @return {*}
  */
 router.post('/completions', function(req, res, next) {
-  const { apiKey, prompt, model } = req.body
+  const { apiKey, prompt, model, timeout } = req.body
   if (!apiKey || !prompt) {
     res.send(sendErrParams(res))
     return
@@ -33,7 +33,7 @@ router.post('/completions', function(req, res, next) {
   request.post('https://api.openai.com/v1/completions', {
     headers: headers,
     body: JSON.stringify(params),
-    timeout: 15000
+    timeout: isNumber(timeout) ? timeout : 60000
   }, async (err, response, body) => {
     if (err) {
       console.log(err);
@@ -51,7 +51,7 @@ router.post('/completions', function(req, res, next) {
 });
 
 router.post('/chat/completions', function(req, res, next) {
-  const { apiKey, messages, model } = req.body
+  const { apiKey, messages, model, timeout } = req.body
   if (!apiKey || !messages) {
     res.send(sendErrParams(res))
     return
@@ -68,11 +68,11 @@ router.post('/chat/completions', function(req, res, next) {
     messages: messages,
     ...query
   }
-
+  console.log(params);
   request.post('https://api.openai.com/v1/chat/completions', {
     headers: headers,
     body: JSON.stringify(params),
-    timeout: 15000
+    timeout: isNumber(timeout) ? timeout : 60000
   }, async (err, response, body) => {
     if (err) {
       console.log(err);
